@@ -1,7 +1,6 @@
 ---
 # yamllint disable-line rule:line-length
 # seealso: https://access.redhat.com/documentation/en-us/red_hat_ansible_automation_platform/2.1/html/ansible_builder_guide/assembly-using-builder#con-building-definition-file
-
 version: 1
 
 build_arg_defaults:
@@ -19,5 +18,12 @@ dependencies:
 additional_build_steps:
   prepend: |
     RUN uname -a
+    RUN echo $'[epel] \n\
+    name=Extra Packages for Enterprise Linux $releasever - $basearch \n\
+    baseurl=https://ftp.riken.jp/Linux/fedora/epel/8/Everything/$basearch/ \n\
+    enabled=1 \n\
+    gpgcheck=0' > /etc/yum.repos.d/epel.repo
+
   append:
     - RUN ls -la /etc
+    - RUN dnf install -y agrep
