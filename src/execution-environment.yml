@@ -24,6 +24,5 @@ additional_build_steps:
     enabled=1 \n\
     gpgcheck=0' > /etc/yum.repos.d/epel.repo
 
-  append:
-    - RUN ls -la /etc
-    - RUN dnf install -y agrep
+  append: |
+    RUN microdnf install -y agrep || dnf install -y agrep
