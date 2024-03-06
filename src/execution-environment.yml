@@ -1,28 +1,57 @@
 ---
 # yamllint disable-line rule:line-length
-# seealso: https://access.redhat.com/documentation/en-us/red_hat_ansible_automation_platform/2.1/html/ansible_builder_guide/assembly-using-builder#con-building-definition-file
-version: 1
+#
+# .. seealso:: https://github.com/kurokobo/awx-on-k3s/
+# .. seealso:: https://ansible.readthedocs.io/projects/builder/en/latest/
+version: 3
 
-build_arg_defaults:
-  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: -v
-#  EE_BASE_IMAGE: localhost/ee-minimal-rhel8:latest
-#  EE_BUILDER_IMAGE: localhost/ansible-builder-rhel8:latest
+images:
+  base_image:
+    name: quay.io/centos/centos:stream9-minimal
 
-ansible_config: ansible.cfg
+options:
+  # container_init:
+  #   package_pip: dumb-init==1.2.5
+  #   entrypoint: '["/opt/builder/bin/entrypoint", "dumb-init"]'
+  #   cmd: '["bash"]'
+  package_manager_path: /usr/bin/microdnf
+  # relax_password_permissions: true
+  # skip_ansible_check: false
+  # workdir: /runner
+  # user: 1000
 
 dependencies:
-  galaxy: requirements.yml
-  python: requirements.txt
-  system: bindep.txt
+  python_interpreter:
+    package_system: python3.11
+    python_path: /usr/bin/python3.11
+  ansible_core:
+    package_pip: ansible-core
+  ansible_runner:
+    package_pip: ansible-runner
+  system: deps/bindep.txt
+  python: deps/requirements.txt
+  galaxy: deps/requirements.yml
+
+additional_build_files:
+  - src: files/ansible.cfg
+    dest: configs
 
 additional_build_steps:
-  prepend: |
-    RUN uname -a
-    RUN echo $'[epel] \n\
-    name=Extra Packages for Enterprise Linux $releasever - $basearch \n\
-    baseurl=https://ftp.riken.jp/Linux/fedora/epel/8/Everything/$basearch/ \n\
-    enabled=1 \n\
-    gpgcheck=0' > /etc/yum.repos.d/epel.repo
-
-  append: |
-    RUN microdnf install -y agrep || dnf install -y agrep
+  # prepend_base:
+  #   - RUN echo "Additional steps for prepend_base"
+  append_base:
+    - RUN uname -a
+    # - RUN echo "Additional steps for append_base"
+    - RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 0
+  prepend_galaxy:
+    # - RUN echo "Additional steps for prepend_galaxy"
+    - ADD _build/configs/ansible.cfg ~/.ansible.cfg
+  # append_galaxy:
+  #   - RUN echo "Additional steps for append_galaxy"
+  # prepend_builder:
+  #   - RUN echo "Additional steps for prepend_builder"
+  # append_builder:
+  #   - RUN echo "Additional steps for append_builder"
+  # prepend_final:
+  # append_final:
+  #   - RUN microdnf install -y agrep || dnf install -y agrep
