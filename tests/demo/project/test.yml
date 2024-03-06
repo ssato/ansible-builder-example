@@ -1,0 +1,8 @@
+---
+- name: >
+    Run playbook by ansible-runner with the container image built by
+    ansible-builder
+  hosts: all
+  gather_facts: false
+  tasks:
+   - ansible.builtin.ping:
